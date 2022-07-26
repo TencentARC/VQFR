@@ -1,0 +1,6 @@
+einops
+numpy
+opencv-python
+torch
+torchvision
+vqfr

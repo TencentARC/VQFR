@@ -1,0 +1,116 @@
+name: test_vqfr_v1
+model_type: VQFRModel
+scale: 1
+num_gpu: 1  # set num_gpu: 0 for cpu mode
+manual_seed: 0
+
+datasets:
+  val:
+    name: Val
+    type: PairedImageDataset
+    dataroot_lq: datasets/celeba_512_validation_lq
+    dataroot_gt: datasets/celeba_512_validation_lq
+    io_backend:
+      type: disk
+
+    mean: [0.5, 0.5, 0.5]
+    std: [0.5, 0.5, 0.5]
+    scale: 1
+
+# network structures
+network_sr:
+  type: VQFR
+  base_channels: 128
+  proj_patch_size: 32
+  resolution_scale_rates: [ 1,2,2,2,2,2 ]
+  channel_multipliers: [ 1,1,2,2,2,4 ]
+  encoder_num_blocks: 2
+  decoder_num_blocks: 3
+  quant_level: [ 'Level_32' ]
+  fix_keys: ['embedding']
+  inpfeat_extraction_opt:
+    in_dim: 3
+    out_dim: 32
+  align_from_patch: 32
+  align_opt:
+    Level_32:
+      cond_channels: 32
+      cond_downscale_rate: 32
+      deformable_groups: 4
+    Level_16:
+      cond_channels: 32
+      cond_downscale_rate: 16
+      deformable_groups: 4
+    Level_8:
+      cond_channels: 32
+      cond_downscale_rate: 8
+      deformable_groups: 4
+    Level_4:
+      cond_channels: 32
+      cond_downscale_rate: 4
+      deformable_groups: 4
+    Level_2:
+      cond_channels: 32
+      cond_downscale_rate: 2
+      deformable_groups: 4
+    Level_1:
+      cond_channels: 32
+      cond_downscale_rate: 1
+      deformable_groups: 4
+  quantizer_opt:
+    Level_32:
+      type: L2VectorQuantizer
+      in_dim: 512
+      num_code: 1024
+      code_dim: 256
+      reservoir_size: 16384
+      reestimate_iters: 2000
+      reestimate_maxiters: -1
+      warmup_iters: -1
+
+# network structures
+network_g:
+  type: VQGAN
+  base_channels: 128
+  proj_patch_size: 32
+  resolution_scale_rates: [ 1,2,2,2,2,2 ]
+  channel_multipliers: [ 1,1,2,2,2,4 ]
+  encoder_num_blocks: 2
+  decoder_num_blocks: 3
+  quant_level: [ 'Level_32' ]
+  quantizer_opt:
+    Level_32:
+      type: L2VectorQuantizer
+      in_dim: 512
+      num_code: 1024
+      code_dim: 256
+      reservoir_size: 16384
+      reestimate_iters: 2000
+      reestimate_maxiters: -1
+      warmup_iters: -1
+
+# path
+path:
+  pretrain_network_g: experiments/pretrained_models/VQ_Codebook_FFHQ512-39165968.pth
+  param_key_g: params
+  strict_load_g: ~
+  pretrain_network_sr: experiments/pretrained_models/VQFR_v1-33a1fac5.pth
+  param_key_sr: params
+  strict_load_sr: true
+  resume_state: ~
+
+# validation settings
+val:
+  save_img: true
+  suffix: ~  # add suffix to saved images, if None, use exp name
+  test_which: main_branch
+  pbar: true
+  metrics:
+    psnr: # metric name, can be arbitrary
+      type: calculate_psnr
+      crop_border: 4
+      test_y_channel: false
+    ssim:
+      type: calculate_ssim
+      crop_border: 4
+      test_y_channel: false

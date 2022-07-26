@@ -1,0 +1,141 @@
+name: train_vqgan_v1_B16_800K
+model_type: VQGANModel
+scale: 1
+num_gpu: auto
+manual_seed: 0
+syncbn: true
+
+# dataset and data loader settings
+datasets:
+  train:
+    name: FFHQ
+    type: FFHQDataset
+    dataroot_gt: datasets/ffhq/ffhq_512
+    io_backend:
+      type: disk
+
+    use_hflip: true
+    mean: [0.5, 0.5, 0.5]
+    std: [0.5, 0.5, 0.5]
+
+    # data loader
+    use_shuffle: true
+    num_worker_per_gpu: 6
+    batch_size_per_gpu: 2
+    dataset_enlarge_ratio: 1
+    prefetch_mode: ~
+
+  val:
+    name: Val
+    type: PairedImageDataset
+    dataroot_gt: datasets/Validation/Recon_Validation
+    dataroot_lq: datasets/Validation/Recon_Validation
+    io_backend:
+      type: disk
+
+    mean: [0.5, 0.5, 0.5]
+    std: [0.5, 0.5, 0.5]
+
+# network structures
+network_g:
+  type: VQGAN
+  base_channels: 128
+  proj_patch_size: 32
+  resolution_scale_rates: [ 1,2,2,2,2,2 ]
+  channel_multipliers: [ 1,1,2,2,2,4 ]
+  encoder_num_blocks: 2
+  decoder_num_blocks: 3
+  quant_level: [ 'Level_32' ]
+  quantizer_opt:
+    Level_32:
+      type: L2VectorQuantizer
+      in_dim: 512
+      num_code: 1024
+      code_dim: 256
+      reservoir_size: 16384
+      reestimate_iters: 2000
+      reestimate_maxiters: 30000
+      warmup_iters: 10000
+
+network_d:
+  type: SWADiscriminator
+  out_size: 512
+  channel_multiplier: 2
+  resample_kernel: [1, 3, 3, 1]
+
+# path
+path:
+  pretrain_network_g: ~
+  strict_load_g: true
+  resume_state: ~
+
+# training settings
+train:
+  optim_g:
+    type: Adam
+    lr: !!float 1e-4
+    weight_decay: 0
+    betas: [ 0.9, 0.96 ]
+
+  optim_d:
+    type: Adam
+    lr: !!float 1e-4
+    weight_decay: 0
+    betas: [ 0.9, 0.96 ]
+
+  scheduler:
+    type: MultiStepLR
+    milestones: [ 500000, 650000 ]
+    gamma: 0.5
+
+  total_iter: 800000
+  warmup_iter: -1  # no warm up
+  gan_start_iter: 50000
+
+  # losses
+  codebook_loss_weight: 1.0
+
+  pixel_opt:
+    type: L1Loss
+    loss_weight: !!float 1.0
+    reduction: mean
+
+  perceptual_opt:
+    type: LPIPS
+    perceptual_weight: !!float 1.0
+
+  # losses
+  gan_opt:
+    type: GANLoss
+    gan_type: wgan_softplus
+    loss_weight: !!float 1.0
+
+  r1_reg_weight: 10
+  net_d_reg_every: 16
+
+# validation settings
+val:
+  val_freq: !!float 5e3
+  save_img: true
+
+  metrics:
+    psnr: # metric name, can be arbitrary
+      type: calculate_psnr
+      crop_border: 4
+      test_y_channel: false
+
+# logging settings
+logger:
+  print_freq: 100
+  save_checkpoint_freq: !!float 5e3
+  use_tb_logger: true
+  wandb:
+    project: ~
+    resume_id: ~
+
+# dist training settings
+dist_params:
+  backend: nccl
+  port: 29500
+
+find_unused_parameters: True
