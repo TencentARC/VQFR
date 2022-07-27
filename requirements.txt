@@ -1,6 +1,7 @@
 einops
 numpy
 opencv-python
+scikit-learn
 torch
 torchvision
 vqfr
