@@ -9,7 +9,7 @@ Compare with previous arts, VQFR produces more realistic facial details and keep
 
 ### VQFR: Blind Face Restoration with Vector-Quantized Dictionary and Parallel Decoder
 
-> [[Paper](https://arxiv.org/abs/2205.06803)] &emsp; [[Project Page](https://ycgu.site/projects/VQFR_Project)] &emsp; [Video] &emsp; [B站] &emsp; [Poster] &emsp; [Slides]<br>
+> [[Paper](https://arxiv.org/abs/2205.06803)] &emsp; [[Project Page](https://ycgu.site/projects/vqfr)] &emsp; [Video] &emsp; [B站] &emsp; [Poster] &emsp; [Slides]<br>
 > [Yuchao Gu](https://ycgu.site/), [Xintao Wang](https://xinntao.github.io/), [Liangbin Xie](https://liangbinxie.github.io/), [Chao Dong](https://scholar.google.com.hk/citations?user=OSDCB0UAAAAJ), Gen Li, [Ying Shan](https://scholar.google.com/citations?user=4oXBp9UAAAAJ&hl=en),
 [Ming-Ming Cheng](https://scholar.google.com/citations?user=huWpVyEAAAAJ&hl=en)<br>
 > Nankai University; Tencent ARC Lab; Tencent Online Video; Shanghai AI Laboratory;<br>

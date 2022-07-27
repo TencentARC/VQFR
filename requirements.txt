@@ -1,7 +1,12 @@
 einops
-numpy
+lmdb
+numpy<1.21  # numba requires numpy<1.21,>=1.17
 opencv-python
+pyyaml
 scikit-learn
-torch
+scipy
+tb-nightly
+torch>=1.7
 torchvision
-vqfr
+tqdm
+yapf
