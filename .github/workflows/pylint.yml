@@ -23,7 +23,6 @@ jobs:
         pip install codespell flake8 isort yapf
     - name: Lint
       run: |
-        codespell
         flake8 .
         isort --check-only --diff vqfr/ scripts/ demo.py setup.py
         yapf -r -d vqfr/ scripts/ demo.py setup.py
