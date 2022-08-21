@@ -1,6 +1,5 @@
 # VQFR (ECCV 2022 Oral)
 
-[![download](https://img.shields.io/github/downloads/TencentARC/VQFR/total.svg)](https://github.com/TencentARC/VQFR/releases)
 ![visitors](https://visitor-badge.glitch.me/badge?page_id=TencentARC/VQFR)
 [![Open issue](https://img.shields.io/github/issues/TencentARC/VQFR)](https://github.com/TencentARC/VQFR/issues)
 [![Closed issue](https://img.shields.io/github/issues-closed/TencentARC/VQFR)](https://github.com/TencentARC/VQFR/issues)
