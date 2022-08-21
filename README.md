@@ -1,5 +1,22 @@
 # VQFR (ECCV 2022 Oral)
 
+[![download](https://img.shields.io/github/downloads/TencentARC/VQFR/total.svg)](https://github.com/TencentARC/VQFR/releases)
+![visitors](https://visitor-badge.glitch.me/badge?page_id=TencentARC/VQFR)
+[![Open issue](https://img.shields.io/github/issues/TencentARC/VQFR)](https://github.com/TencentARC/VQFR/issues)
+[![Closed issue](https://img.shields.io/github/issues-closed/TencentARC/VQFR)](https://github.com/TencentARC/VQFR/issues)
+[![LICENSE](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/TencentARC/VQFR/blob/master/LICENSE)
+<a href="https://colab.research.google.com/drive/1Nd_PUrHaYmeEAOF5f_Zi0VuOxlJ62gLr?usp=sharing"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="google colab logo"></a>
+
+
+1. [Colab Demo](https://colab.research.google.com/drive/1Nd_PUrHaYmeEAOF5f_Zi0VuOxlJ62gLr?usp=sharing) for VQFR
+1. Online demo: [Replicate.ai](https://replicate.com/tencentarc/vqfr) (may need to sign in, return the whole image)
+
+:triangular_flag_on_post: **Updates**
+
+- :white_check_mark: Support enhancing non-face regions (background) with [Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN).
+- :white_check_mark: The Colab Demo of VQFR is created.
+- :white_check_mark: The training/inference codes and pretrained models in paper are released. 
+
 This paper aims at investigating the **potential and limitation of Vector-Quantized (VQ) dictionary** for blind face restoration.
 <br>
 We propose a new framework VQFR – incoporating the **Vector-Quantized Dictionary** and the **Parallel Decoder**.
@@ -9,7 +26,7 @@ Compare with previous arts, VQFR produces more realistic facial details and keep
 
 ### VQFR: Blind Face Restoration with Vector-Quantized Dictionary and Parallel Decoder
 
-> [[Paper](https://arxiv.org/abs/2205.06803)] &emsp; [[Project Page](https://ycgu.site/projects/vqfr)] &emsp; [[Web Demo](https://replicate.com/tencentarc/vqfr)] &emsp; [Video] &emsp; [B站] &emsp; [Poster] &emsp; [Slides]<br>
+> [[Paper](https://arxiv.org/abs/2205.06803)] &emsp; [[Project Page](https://ycgu.site/projects/vqfr)] &emsp; [Video] &emsp; [B站] &emsp; [Poster] &emsp; [Slides]<br>
 > [Yuchao Gu](https://ycgu.site/), [Xintao Wang](https://xinntao.github.io/), [Liangbin Xie](https://liangbinxie.github.io/), [Chao Dong](https://scholar.google.com.hk/citations?user=OSDCB0UAAAAJ), Gen Li, [Ying Shan](https://scholar.google.com/citations?user=4oXBp9UAAAAJ&hl=en),
 [Ming-Ming Cheng](https://scholar.google.com/citations?user=huWpVyEAAAAJ&hl=en)<br>
 > Nankai University; Tencent ARC Lab; Tencent Online Video; Shanghai AI Laboratory;<br>
