@@ -12,7 +12,8 @@
 
 :triangular_flag_on_post: **Updates**
 
-- :white_check_mark: **2022.10.16** Clean research codes & Update VQFR-v2, please see [CHANGELOG.md](). In this version, we emphasize the restoration **quality** of the texture branch and **balance fidelity with user control**.
+- :white_check_mark: **2022.10.16** Clean research codes & Update VQFR-v2, please see [CHANGELOG.md](). In this version, we emphasize the restoration **quality** of the texture branch and **balance fidelity with user control**. <a href="https://colab.research.google.com/drive/1Nd_PUrHaYmeEAOF5f_Zi0VuOxlJ62gLr?usp=sharing"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="google colab logo"></a>
+
 - :white_check_mark: Support enhancing non-face regions (background) with [Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN).
 - :white_check_mark: The Colab Demo of VQFR is created.
 - :white_check_mark: The training/inference codes and pretrained models in paper are released.
