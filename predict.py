@@ -36,8 +36,8 @@ class Predictor(BasePredictor):
             half=True,
         )  # need to set False in CPU mode
 
-        arch = 'v1'
-        model_name = 'VQFR_v1-33a1fac5'
+        arch = 'v2'
+        model_name = 'VQFR_v2'
         model_path = f'experiments/pretrained_models/{model_name}.pth'
 
         upscale = 2
@@ -59,6 +59,7 @@ class Predictor(BasePredictor):
         # restore faces and background if necessary
         cropped_faces, restored_faces, restored_img = self.restorer.enhance(
             input_img,
+            fidelity_ratio=0,
             has_aligned=aligned,
             only_center_face=only_center_face,
             paste_back=True,
