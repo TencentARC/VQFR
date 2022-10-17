@@ -22,7 +22,13 @@ def main():
     parser.add_argument('-o', '--output', type=str, default='results', help='Output folder. Default: results')
     # we use version to select models, which is more user-friendly
     parser.add_argument(
-        '-v', '--version', type=str, default='1.0', help='VQFR model version. Option: 1.0. Default: 1.0')
+        '-v', '--version', type=str, default='2.0', help='VQFR model version. Option: [1.0, 2.0]. Default: 2.0')
+    parser.add_argument(
+        '-f',
+        '--fidelity_ratio',
+        type=str,
+        default=0.0,
+        help='fidelity range [0,1] in VQFR-v2, 0 for the best quality, 1 for the best fidelity')
     parser.add_argument(
         '-s', '--upscale', type=int, default=2, help='The final upsampling scale of the image. Default: 2')
 
@@ -77,15 +83,19 @@ def main():
 
     # ------------------------ set up VRFR restorer ------------------------
     if args.version == '1.0':
-        arch = 'original'
+        arch = 'v1'
         model_name = 'VQFR_v1-33a1fac5'
+        fidelity_ratio = None
+    elif args.version == '2.0':
+        arch = 'v2'
+        model_name = 'VQFR_v2'
+        fidelity_ratio = args.fidelity_ratio
+        assert fidelity_ratio >= 0.0 and fidelity_ratio <= 1.0, 'fidelity_ratio must in range[0,1]'
     else:
         raise ValueError(f'Wrong model version {args.version}.')
 
     # determine model paths
     model_path = os.path.join('experiments/pretrained_models', model_name + '.pth')
-    if not os.path.isfile(model_path):
-        model_path = os.path.join('realesrgan/weights', model_name + '.pth')
     if not os.path.isfile(model_path):
         raise ValueError(f'Model {model_name} does not exist.')
 
@@ -101,7 +111,11 @@ def main():
 
         # restore faces and background if necessary
         cropped_faces, restored_faces, restored_img = restorer.enhance(
-            input_img, has_aligned=args.aligned, only_center_face=args.only_center_face, paste_back=True)
+            input_img,
+            fidelity_ratio=fidelity_ratio,
+            has_aligned=args.aligned,
+            only_center_face=args.only_center_face,
+            paste_back=True)
 
         # save faces
         for idx, (cropped_face, restored_face) in enumerate(zip(cropped_faces, restored_faces)):

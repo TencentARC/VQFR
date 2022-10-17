@@ -1,5 +1,5 @@
 name: test_vqfr_v1
-model_type: VQFRModel
+model_type: VQFRv1Model
 scale: 1
 num_gpu: 1  # set num_gpu: 0 for cpu mode
 manual_seed: 0
@@ -8,8 +8,8 @@ datasets:
   val:
     name: Val
     type: PairedImageDataset
-    dataroot_lq: datasets/celeba_512_validation_lq
-    dataroot_gt: datasets/celeba_512_validation_lq
+    dataroot_lq: datasets/Validation/SR_Validation/
+    dataroot_gt: datasets/Validation/SR_Validation/
     io_backend:
       type: disk
 
@@ -19,7 +19,7 @@ datasets:
 
 # network structures
 network_sr:
-  type: VQFR
+  type: VQFRv1
   base_channels: 128
   proj_patch_size: 32
   resolution_scale_rates: [ 1,2,2,2,2,2 ]
@@ -59,28 +59,7 @@ network_sr:
       deformable_groups: 4
   quantizer_opt:
     Level_32:
-      type: L2VectorQuantizer
-      in_dim: 512
-      num_code: 1024
-      code_dim: 256
-      reservoir_size: 16384
-      reestimate_iters: 2000
-      reestimate_maxiters: -1
-      warmup_iters: -1
-
-# network structures
-network_g:
-  type: VQGAN
-  base_channels: 128
-  proj_patch_size: 32
-  resolution_scale_rates: [ 1,2,2,2,2,2 ]
-  channel_multipliers: [ 1,1,2,2,2,4 ]
-  encoder_num_blocks: 2
-  decoder_num_blocks: 3
-  quant_level: [ 'Level_32' ]
-  quantizer_opt:
-    Level_32:
-      type: L2VectorQuantizer
+      type: L2VectorQuantizerKmeans
       in_dim: 512
       num_code: 1024
       code_dim: 256
@@ -91,9 +70,6 @@ network_g:
 
 # path
 path:
-  pretrain_network_g: experiments/pretrained_models/VQ_Codebook_FFHQ512-39165968.pth
-  param_key_g: params
-  strict_load_g: ~
   pretrain_network_sr: experiments/pretrained_models/VQFR_v1-33a1fac5.pth
   param_key_sr: params
   strict_load_sr: true

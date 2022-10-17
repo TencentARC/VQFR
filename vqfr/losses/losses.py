@@ -45,6 +45,25 @@ def charbonnier_loss(pred, target, eps=1e-12):
 
 
 @LOSS_REGISTRY.register()
+class CrossEntropyLoss(nn.Module):
+
+    def __init__(self, loss_weight=1.0, reduction='mean', ignore_index=-1):
+        super(CrossEntropyLoss, self).__init__()
+        if reduction not in ['none', 'mean', 'sum']:
+            raise ValueError(f'Unsupported reduction mode: {reduction}.')
+
+        self.loss_weight = loss_weight
+        self.reduction = reduction
+        self.ignore_index = ignore_index
+
+    def forward(self, input, target):
+        input = input.reshape(-1, input.shape[-1])
+        target = target.reshape(-1)
+        return self.loss_weight * F.cross_entropy(
+            input, target, reduction=self.reduction, ignore_index=self.ignore_index)
+
+
+@LOSS_REGISTRY.register()
 class MultiQuantMatchLoss(nn.Module):
 
     def __init__(self, loss_opt):

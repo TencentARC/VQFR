@@ -6,7 +6,7 @@ import torchvision
 from distutils.version import LooseVersion
 from timm.models.layers import trunc_normal_
 
-from vqfr.archs.vqgan_arch import GeneralizedQuantizer, ResnetBlock, UpDownSample, VQGANDecoder, VQGANEncoder
+from vqfr.archs.vqganv1_arch import GeneralizedQuantizer, ResnetBlock, UpDownSample, VQGANDecoder, VQGANEncoder
 from vqfr.ops.dcn import ModulatedDeformConvPack, modulated_deform_conv
 from vqfr.utils import get_root_logger
 from vqfr.utils.registry import ARCH_REGISTRY
@@ -144,7 +144,7 @@ class InpFeatConv(nn.Module):
 
 
 @ARCH_REGISTRY.register()
-class VQFR(nn.Module):
+class VQFRv1(nn.Module):
 
     def __init__(self,
                  base_channels,
@@ -229,7 +229,7 @@ class VQFR(nn.Module):
     def get_main_last_layer(self):
         return self.main_decoder.conv_out[-1].weight
 
-    def forward(self, x_lq, iters=-1, return_keys=('dec')):
+    def forward(self, x_lq, iters=-1, return_keys=('dec'), fidelity_ratio=None):
 
         inpfeat = self.inpfeat_extraction(x_lq)
 

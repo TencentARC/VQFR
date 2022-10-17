@@ -5,7 +5,8 @@ from basicsr.utils import img2tensor, tensor2img
 from facexlib.utils.face_restoration_helper import FaceRestoreHelper
 from torchvision.transforms.functional import normalize
 
-from vqfr.archs.vqfr_arch import VQFR
+from vqfr.archs.vqfrv1_arch import VQFRv1
+from vqfr.archs.vqfrv2_arch import VQFRv2
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -24,15 +25,15 @@ class VQFR_Demo():
         bg_upsampler (nn.Module): The upsampler for the background. Default: None.
     """
 
-    def __init__(self, model_path, upscale=2, arch='original', bg_upsampler=None, device=None):
+    def __init__(self, model_path, upscale=2, arch='v1', bg_upsampler=None, device=None):
         self.upscale = upscale
         self.bg_upsampler = bg_upsampler
 
         # initialize model
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu') if device is None else device
         # initialize the VQFR
-        if arch == 'original':
-            self.vqfr = VQFR(
+        if arch == 'v1':
+            self.vqfr = VQFRv1(
                 base_channels=128,
                 proj_patch_size=32,
                 resolution_scale_rates=[1, 2, 2, 2, 2, 2],
@@ -90,6 +91,26 @@ class VQFR_Demo():
                         'warmup_iters': -1
                     }
                 })
+        elif arch == 'v2':
+            self.vqfr = VQFRv2(
+                base_channels=64,
+                channel_multipliers=[1, 2, 2, 4, 4, 8],
+                num_enc_blocks=2,
+                use_enc_attention=True,
+                num_dec_blocks=2,
+                use_dec_attention=True,
+                code_dim=256,
+                inpfeat_dim=32,
+                align_opt={
+                    'cond_channels': 32,
+                    'deformable_groups': 4
+                },
+                code_selection_mode='Predict',  # Predict/Nearest
+                quantizer_opt={
+                    'type': 'L2VectorQuantizer',
+                    'num_code': 1024,
+                    'code_dim': 256
+                })
 
         # initialize face helper
         self.face_helper = FaceRestoreHelper(
@@ -111,7 +132,7 @@ class VQFR_Demo():
         self.vqfr = self.vqfr.to(self.device)
 
     @torch.no_grad()
-    def enhance(self, img, has_aligned=False, only_center_face=False, paste_back=True):
+    def enhance(self, img, fidelity_ratio=None, has_aligned=False, only_center_face=False, paste_back=True):
         self.face_helper.clean_all()
 
         if has_aligned:  # the inputs are already aligned
@@ -134,7 +155,7 @@ class VQFR_Demo():
             cropped_face_t = cropped_face_t.unsqueeze(0).to(self.device)
 
             try:
-                output = self.vqfr(cropped_face_t)['main_dec'][0]
+                output = self.vqfr(cropped_face_t, fidelity_ratio=fidelity_ratio)['main_dec'][0]
                 # convert to image
                 restored_face = tensor2img(output.squeeze(0), rgb2bgr=True, min_max=(-1, 1))
             except RuntimeError as error:

@@ -1,3 +1,5 @@
+datasets/*
+experiments/*
 results/*
 tb_logger/*
 wandb/*

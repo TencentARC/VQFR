@@ -1,22 +1,9 @@
 import math
 import torch
-import torch.nn.functional as F
 from torch import nn
 
 from vqfr.ops.upfirdn2d import upfirdn2d
 from vqfr.utils.registry import ARCH_REGISTRY
-
-
-class NormStyleCode(nn.Module):
-
-    def forward(self, x):
-        """Normalize the style codes.
-        Args:
-            x (Tensor): Style codes with shape (b, c).
-        Returns:
-            Tensor: Normalized tensor.
-        """
-        return x * torch.rsqrt(torch.mean(x**2, dim=1, keepdim=True) + 1e-8)
 
 
 def make_resample_kernel(k):
@@ -34,55 +21,64 @@ def make_resample_kernel(k):
     return k
 
 
-class UpFirDnUpsample(nn.Module):
-    """Upsample, FIR filter, and downsample (upsampole version).
-    References:
-    1. https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.upfirdn.html  # noqa: E501
-    2. http://www.ece.northwestern.edu/local-apps/matlabhelp/toolbox/signal/upfirdn.html  # noqa: E501
-    Args:
-        resample_kernel (list[int]): A list indicating the 1D resample kernel
-            magnitude.
-        factor (int): Upsampling scale factor. Default: 2.
-    """
-
-    def __init__(self, resample_kernel, factor=2):
-        super(UpFirDnUpsample, self).__init__()
-        self.kernel = make_resample_kernel(resample_kernel) * (factor**2)
-        self.factor = factor
-
-        pad = self.kernel.shape[0] - factor
-        self.pad = ((pad + 1) // 2 + factor - 1, pad // 2)
-
-    def forward(self, x):
-        out = upfirdn2d(x, self.kernel.type_as(x), up=self.factor, down=1, pad=self.pad)
-        return out
-
-    def __repr__(self):
-        return (f'{self.__class__.__name__}(factor={self.factor})')
+def l2normalize(v, eps=1e-12):
+    return v / (v.norm() + eps)
 
 
-class UpFirDnDownsample(nn.Module):
-    """Upsample, FIR filter, and downsample (downsampole version).
-    Args:
-        resample_kernel (list[int]): A list indicating the 1D resample kernel
-            magnitude.
-        factor (int): Downsampling scale factor. Default: 2.
-    """
+class SpectralNorm(nn.Module):
 
-    def __init__(self, resample_kernel, factor=2):
-        super(UpFirDnDownsample, self).__init__()
-        self.kernel = make_resample_kernel(resample_kernel)
-        self.factor = factor
+    def __init__(self, module, name='weight', power_iterations=1):
+        super(SpectralNorm, self).__init__()
+        self.module = module
+        self.name = name
+        self.power_iterations = power_iterations
+        if not self._made_params():
+            self._make_params()
 
-        pad = self.kernel.shape[0] - factor
-        self.pad = ((pad + 1) // 2, pad // 2)
+    def _update_u_v(self):
+        u = getattr(self.module, self.name + '_u')
+        v = getattr(self.module, self.name + '_v')
+        w = getattr(self.module, self.name + '_bar')
 
-    def forward(self, x):
-        out = upfirdn2d(x, self.kernel.type_as(x), up=1, down=self.factor, pad=self.pad)
-        return out
+        height = w.data.shape[0]
+        for _ in range(self.power_iterations):
+            v.data = l2normalize(torch.mv(torch.t(w.view(height, -1).data), u.data))
+            u.data = l2normalize(torch.mv(w.view(height, -1).data, v.data))
 
-    def __repr__(self):
-        return (f'{self.__class__.__name__}(factor={self.factor})')
+        # sigma = torch.dot(u.data, torch.mv(w.view(height,-1).data, v.data))
+        sigma = u.dot(w.view(height, -1).mv(v))
+        setattr(self.module, self.name, w / sigma.expand_as(w))
+
+    def _made_params(self):
+        try:
+            getattr(self.module, self.name + '_u')
+            getattr(self.module, self.name + '_v')
+            getattr(self.module, self.name + '_bar')
+            return True
+        except AttributeError:
+            return False
+
+    def _make_params(self):
+        w = getattr(self.module, self.name)
+
+        height = w.data.shape[0]
+        width = w.view(height, -1).data.shape[1]
+
+        u = nn.Parameter(w.data.new(height).normal_(0, 1), requires_grad=False)
+        v = nn.Parameter(w.data.new(width).normal_(0, 1), requires_grad=False)
+        u.data = l2normalize(u.data)
+        v.data = l2normalize(v.data)
+        w_bar = nn.Parameter(w.data)
+
+        del self.module._parameters[self.name]
+
+        self.module.register_parameter(self.name + '_u', u)
+        self.module.register_parameter(self.name + '_v', v)
+        self.module.register_parameter(self.name + '_bar', w_bar)
+
+    def forward(self, *args):
+        self._update_u_v()
+        return self.module.forward(*args)
 
 
 class UpFirDnSmooth(nn.Module):
@@ -156,7 +152,9 @@ class ConvLayer(nn.Sequential):
             stride = 1
             self.padding = kernel_size // 2
         # conv
-        layers.append(nn.Conv2d(in_channels, out_channels, kernel_size, stride=stride, padding=self.padding, bias=bias))
+        layers.append(
+            SpectralNorm(
+                nn.Conv2d(in_channels, out_channels, kernel_size, stride=stride, padding=self.padding, bias=bias)))
         # activation
         if activate:
             layers.append(nn.LeakyReLU(0.2))
@@ -192,69 +190,6 @@ class ResBlock(nn.Module):
         return out
 
 
-class EqualConv2d(nn.Module):
-    """Equalized Linear as StyleGAN2.
-    Args:
-        in_channels (int): Channel number of the input.
-        out_channels (int): Channel number of the output.
-        kernel_size (int): Size of the convolving kernel.
-        stride (int): Stride of the convolution. Default: 1
-        padding (int): Zero-padding added to both sides of the input.
-            Default: 0.
-        bias (bool): If ``True``, adds a learnable bias to the output.
-            Default: ``True``.
-        bias_init_val (float): Bias initialized value. Default: 0.
-    """
-
-    def __init__(self, in_channels, out_channels, kernel_size, stride=1, padding=0, bias=True, bias_init_val=0):
-        super(EqualConv2d, self).__init__()
-        self.in_channels = in_channels
-        self.out_channels = out_channels
-        self.kernel_size = kernel_size
-        self.stride = stride
-        self.padding = padding
-        self.scale = 1 / math.sqrt(in_channels * kernel_size**2)
-
-        self.weight = nn.Parameter(torch.randn(out_channels, in_channels, kernel_size, kernel_size))
-        if bias:
-            self.bias = nn.Parameter(torch.zeros(out_channels).fill_(bias_init_val))
-        else:
-            self.register_parameter('bias', None)
-
-    def forward(self, x):
-        out = F.conv2d(
-            x,
-            self.weight * self.scale,
-            bias=self.bias,
-            stride=self.stride,
-            padding=self.padding,
-        )
-
-        return out
-
-    def __repr__(self):
-        return (f'{self.__class__.__name__}(in_channels={self.in_channels}, '
-                f'out_channels={self.out_channels}, '
-                f'kernel_size={self.kernel_size},'
-                f' stride={self.stride}, padding={self.padding}, '
-                f'bias={self.bias is not None})')
-
-
-class ScaledLeakyReLU(nn.Module):
-    """Scaled LeakyReLU.
-    Args:
-        negative_slope (float): Negative slope. Default: 0.2.
-    """
-
-    def __init__(self, negative_slope=0.2):
-        super(ScaledLeakyReLU, self).__init__()
-        self.negative_slope = negative_slope
-
-    def forward(self, x):
-        out = F.leaky_relu(x, negative_slope=self.negative_slope)
-        return out * math.sqrt(2)
-
-
 @ARCH_REGISTRY.register()
 class StyleGAN2Discriminator(nn.Module):
     """StyleGAN2 Discriminator.
@@ -269,19 +204,19 @@ class StyleGAN2Discriminator(nn.Module):
         narrow (float): Narrow ratio for channels. Default: 1.0.
     """
 
-    def __init__(self, out_size, channel_multiplier=2, resample_kernel=(1, 3, 3, 1), stddev_group=4, narrow=1):
+    def __init__(self, out_size, channel_multiplier=2, resample_kernel=(1, 3, 3, 1)):
         super(StyleGAN2Discriminator, self).__init__()
 
         channels = {
-            '4': int(512 * narrow),
-            '8': int(512 * narrow),
-            '16': int(512 * narrow),
-            '32': int(512 * narrow),
-            '64': int(256 * channel_multiplier * narrow),
-            '128': int(128 * channel_multiplier * narrow),
-            '256': int(64 * channel_multiplier * narrow),
-            '512': int(32 * channel_multiplier * narrow),
-            '1024': int(16 * channel_multiplier * narrow)
+            '4': int(512),
+            '8': int(512),
+            '16': int(512),
+            '32': int(512),
+            '64': int(256 * channel_multiplier),
+            '128': int(128 * channel_multiplier),
+            '256': int(64 * channel_multiplier),
+            '512': int(32 * channel_multiplier),
+            '1024': int(16 * channel_multiplier)
         }
 
         log_size = int(math.log(out_size, 2))
@@ -297,9 +232,9 @@ class StyleGAN2Discriminator(nn.Module):
 
         self.final_conv = ConvLayer(in_channels + 1, channels['4'], 3, bias=True, activate=True)
         self.final_linear = nn.Sequential(
-            nn.Linear(channels['4'] * 4 * 4, channels['4'], bias=True), nn.LeakyReLU(0.2),
-            nn.Linear(channels['4'], 1, bias=True))
-        self.stddev_group = stddev_group
+            SpectralNorm(nn.Linear(channels['4'] * 4 * 4, channels['4'], bias=True)), nn.LeakyReLU(0.2),
+            SpectralNorm(nn.Linear(channels['4'], 1, bias=True)))
+        self.stddev_group = 4
         self.stddev_feat = 1
 
     def forward(self, x):

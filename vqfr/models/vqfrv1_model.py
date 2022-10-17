@@ -14,16 +14,17 @@ from .base_model import BaseModel
 
 
 @MODEL_REGISTRY.register()
-class VQFRModel(BaseModel):
+class VQFRv1Model(BaseModel):
     """VQGAN_BASE_Model"""
 
     def __init__(self, opt):
-        super(VQFRModel, self).__init__(opt)
+        super(VQFRv1Model, self).__init__(opt)
 
         # define network
-        self.net_g = build_network(opt['network_g'])
-        self.net_g = self.model_to_device(self.net_g)
-        self.print_network(self.net_g)
+        if 'network_g' in self.opt:
+            self.net_g = build_network(opt['network_g'])
+            self.net_g = self.model_to_device(self.net_g)
+            self.print_network(self.net_g)
 
         self.net_sr = build_network(opt['network_sr'])
         self.net_sr = self.model_to_device(self.net_sr)

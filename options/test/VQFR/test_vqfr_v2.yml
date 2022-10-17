@@ -1,0 +1,63 @@
+name: test_vqfr_v2
+model_type: VQFRv2Model
+scale: 1
+num_gpu: 1  # set num_gpu: 0 for cpu mode
+manual_seed: 0
+
+datasets:
+  val:
+    name: Val
+    type: PairedImageDataset
+    dataroot_lq: datasets/Validation/SR_Validation/
+    dataroot_gt: datasets/Validation/SR_Validation/
+    io_backend:
+      type: disk
+
+    mean: [0.5, 0.5, 0.5]
+    std: [0.5, 0.5, 0.5]
+    scale: 1
+
+# network structures
+network_sr:
+  type: VQFRv2
+  base_channels: 64
+  channel_multipliers: [ 1,2,2,4,4,8 ]
+  num_enc_blocks: 2
+  use_enc_attention: true
+  num_dec_blocks: 2
+  use_dec_attention: true
+  code_dim: 256
+  inpfeat_dim: 32
+  align_opt:
+    cond_channels: 32
+    deformable_groups: 4
+  code_selection_mode: Predict # Predict/Nearest
+  quantizer_opt:
+    type: L2VectorQuantizer
+    num_code: 1024
+    code_dim: 256
+    spatial_size: [16,16]
+
+# path
+path:
+  pretrain_network_sr: experiments/pretrained_models/VQFR_v2.pth
+  param_key_sr: params
+  strict_load_sr: true
+  resume_state: ~
+
+# validation settings
+val:
+  save_img: true
+  suffix: ~  # add suffix to saved images, if None, use exp name
+  test_which: main_branch
+  pbar: true
+  fidelity_ratio: 0.0 # range from [0.0,1.0]
+  metrics:
+    psnr: # metric name, can be arbitrary
+      type: calculate_psnr
+      crop_border: 4
+      test_y_channel: false
+    ssim:
+      type: calculate_ssim
+      crop_border: 4
+      test_y_channel: false

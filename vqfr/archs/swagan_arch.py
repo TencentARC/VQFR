@@ -2,7 +2,7 @@ import math
 import torch
 from torch import nn
 
-from vqfr.archs.stylegan2_arch import EqualConv2d, ScaledLeakyReLU, UpFirDnSmooth
+from vqfr.archs.stylegan_arch import UpFirDnSmooth
 from vqfr.ops.upfirdn2d import upfirdn2d
 from vqfr.utils.registry import ARCH_REGISTRY
 
@@ -140,13 +140,7 @@ class ConvLayer(nn.Sequential):
             self.padding = kernel_size // 2
         # conv
         if equalize:
-            layers.append(
-                SpectralNorm(
-                    EqualConv2d(in_channels, out_channels, kernel_size, stride=stride, padding=self.padding,
-                                bias=bias)))
-            # activation
-            if activate:
-                layers.append(ScaledLeakyReLU(0.2))
+            raise NotImplementedError
         else:
             layers.append(
                 SpectralNorm(
@@ -337,9 +331,9 @@ class SWADiscriminator(nn.Module):
         self.final_conv = ConvLayer(in_channel + 1, channels[4], 3, equalize=False)
 
         self.final_linear = nn.Sequential(
-            nn.Linear(channels[4] * 4 * 4, channels[4]),
+            SpectralNorm(nn.Linear(channels[4] * 4 * 4, channels[4])),
             nn.LeakyReLU(0.2),
-            nn.Linear(channels[4], 1),
+            SpectralNorm(nn.Linear(channels[4], 1)),
         )
 
     def forward(self, input):

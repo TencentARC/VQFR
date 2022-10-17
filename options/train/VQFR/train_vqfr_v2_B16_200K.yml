@@ -1,0 +1,198 @@
+# general settings
+name: train_vqfr_v2_B16_200K
+model_type: VQFRv2Model
+num_gpu: auto
+manual_seed: 0
+syncbn: true # must set to true to avoid bn inplace revision
+
+datasets:
+  train:
+    name: FFHQ
+    type: FFHQDegradationDataset
+    dataroot_gt: datasets/ffhq/ffhq_512.lmdb
+    io_backend:
+      type: lmdb
+    use_hflip: true
+    mean: [0.5, 0.5, 0.5]
+    std: [0.5, 0.5, 0.5]
+    out_size: 512
+    blur_kernel_size: 41
+    kernel_list: ['iso', 'aniso']
+    kernel_prob: [0.5, 0.5]
+    blur_sigma: [1, 15]
+    downsample_range: [1, 30]
+    noise_range: [0, 20]
+    jpeg_range: [30, 90]
+    use_shuffle: true
+    num_worker_per_gpu: 6
+    batch_size_per_gpu: 2
+    dataset_enlarge_ratio: 1
+    prefetch_mode: ~
+
+  val:
+    # Please modify accordingly to use your own validation
+    # Or comment the val block if do not need validation during training
+    name: validation
+    type: PairedImageDataset
+    dataroot_lq: datasets/Validation/SR_Validation
+    dataroot_gt: datasets/Validation/SR_Validation
+    io_backend:
+      type: disk
+    mean: [0.5, 0.5, 0.5]
+    std: [0.5, 0.5, 0.5]
+    scale: 1
+
+# network structures
+network_sr:
+  type: VQFRv2
+  base_channels: 64
+  channel_multipliers: [ 1,2,2,4,4,8 ]
+  num_enc_blocks: 2
+  use_enc_attention: true
+  num_dec_blocks: 2
+  use_dec_attention: true
+  code_dim: 256
+  inpfeat_dim: 32
+  align_opt:
+    cond_channels: 32
+    deformable_groups: 4
+  code_selection_mode: Predict # Predict/Nearest
+  quantizer_opt:
+    type: L2VectorQuantizer
+    num_code: 1024
+    code_dim: 256
+    spatial_size: [ 16,16 ]
+
+# network structures
+network_g:
+  type: VQGANv2
+  base_channels: 64
+  channel_multipliers: [ 1,2,2,4,4,8 ]
+  num_enc_blocks: 2
+  use_enc_attention: true
+  num_dec_blocks: 2
+  use_dec_attention: true
+  code_dim: 256
+  quantizer_opt:
+    type: L2VectorQuantizer
+    num_code: 1024
+    code_dim: 256
+    spatial_size: [ 16,16 ]
+
+network_d:
+  type: StyleGAN2Discriminator
+  out_size: 512
+  channel_multiplier: 2
+  resample_kernel: [1, 3, 3, 1]
+
+network_d_local:
+  type: NLayerDiscriminator
+  input_nc: 3
+  ndf: 64
+  n_layers: 4
+
+# path
+path:
+  pretrain_network_g: experiments/pretrained_models/VQ_Codebook_FFHQ512_v2.pth
+  param_key_g: params
+  strict_load_g: ~
+  pretrain_network_d: ~
+  param_key_d: params
+  strict_load_d: ~
+  pretrain_network_sr: experiments/pretrained_models/VQ_Codebook_FFHQ512_v2.pth
+  param_key_sr: params
+  strict_load_sr: false
+  resume_state: ~
+  ignore_resume_networks: [ 'network_g' ]
+
+# training settings
+train:
+  optim_sr_enc:
+    type: Adam
+    lr: !!float 1e-4
+    weight_decay: 0
+    betas: [ 0.9, 0.96 ] # align with taming
+
+  optim_sr_maindec:
+    type: Adam
+    lr: !!float 2e-5
+    weight_decay: 0
+    betas: [ 0.5, 0.9 ] # align with taming
+
+  optim_d:
+    type: Adam
+    lr: !!float 2e-5
+    weight_decay: 0
+    betas: [ 0.5, 0.9 ]
+
+  scheduler:
+    type: MultiStepLR
+    milestones: [ 200000 ]
+    gamma: 1.0
+
+  total_iter: 200000
+  warmup_iter: -1  # no warm up
+
+  pixel_opt:
+    type: L1Loss
+    loss_weight: !!float 1.0
+    reduction: mean
+
+  quant_feature_opt:
+    type: MSELoss
+    loss_weight: !!float 1.0
+    reduction: mean
+
+  quant_index_opt:
+    type: CrossEntropyLoss
+    loss_weight: !!float 1.0
+    reduction: mean
+
+  perceptual_opt:
+    type: LPIPS
+    perceptual_weight: !!float 1.0
+
+  # losses
+  gan_opt:
+    type: GANLoss
+    gan_type: wgan_softplus
+    loss_weight: !!float 1.0
+
+  patch_gan_opt:
+    type: GANLoss
+    gan_type: hinge
+    loss_weight: !!float 1.0
+
+  r1_reg_weight: 10
+  net_d_reg_every: 16
+  generator_d_global_weight: 0.5
+  generator_d_local_weight: 0.5
+
+  gan_start_iter: 5000
+
+# validation settings
+val:
+  val_freq: !!float 5e3
+  save_img: true
+  test_which: main_branch
+  fidelity_ratio: 1.0
+  metrics:
+    psnr: # metric name, can be arbitrary
+      type: calculate_psnr
+      crop_border: 0
+      test_y_channel: false
+
+# logging settings
+logger:
+  print_freq: 100
+  save_checkpoint_freq: !!float 5e3
+  use_tb_logger: true
+  wandb:
+    project: ~
+    resume_id: ~
+
+# dist training settings
+dist_params:
+  backend: nccl
+  port: 29500
+find_unused_parameters: True

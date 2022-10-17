@@ -1,12 +1,10 @@
-from typing import List
-import numpy as np
-import torch
 import cv2
 import tempfile
-from cog import BasePredictor, Path, Input, BaseModel
-from basicsr.utils import imwrite
 from basicsr.archs.rrdbnet_arch import RRDBNet
+from basicsr.utils import imwrite
+from cog import BaseModel, BasePredictor, Input, Path
 from realesrgan import RealESRGANer
+from typing import List
 
 from vqfr.demo_util import VQFR_Demo
 
@@ -16,6 +14,7 @@ class ModelOutput(BaseModel):
 
 
 class Predictor(BasePredictor):
+
     def setup(self):
         # bg_upsampler = "realesrgan"
         bg_tile = 400
@@ -29,7 +28,7 @@ class Predictor(BasePredictor):
         )
         bg_upsampler = RealESRGANer(
             scale=2,
-            model_path="RealESRGAN_x2plus.pth",  # download from https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.1/RealESRGAN_x2plus.pth
+            model_path='RealESRGAN_x2plus.pth',
             model=model,
             tile=bg_tile,
             tile_pad=10,
@@ -37,24 +36,20 @@ class Predictor(BasePredictor):
             half=True,
         )  # need to set False in CPU mode
 
-        arch = "original"
-        model_name = "VQFR_v1-33a1fac5"
-        model_path = f"experiments/pretrained_models/{model_name}.pth"
+        arch = 'v1'
+        model_name = 'VQFR_v1-33a1fac5'
+        model_path = f'experiments/pretrained_models/{model_name}.pth'
 
         upscale = 2
-        self.restorer = VQFR_Demo(
-            model_path=model_path, upscale=upscale, arch=arch, bg_upsampler=bg_upsampler
-        )
+        self.restorer = VQFR_Demo(model_path=model_path, upscale=upscale, arch=arch, bg_upsampler=bg_upsampler)
 
     def predict(
-        self,
-        image: Path = Input(
-            description="Input image. Output restored faces and whole image.",
-        ),
-        aligned: bool = Input(
-            default=False,
-            description="Input are aligned faces.",
-        ),
+            self,
+            image: Path = Input(description='Input image. Output restored faces and whole image.', ),
+            aligned: bool = Input(
+                default=False,
+                description='Input are aligned faces.',
+            ),
     ) -> List[ModelOutput]:
 
         only_center_face = False
@@ -72,17 +67,15 @@ class Predictor(BasePredictor):
         model_output = []
 
         # save faces
-        for idx, (cropped_face, restored_face) in enumerate(
-            zip(cropped_faces, restored_faces)
-        ):
+        for idx, (cropped_face, restored_face) in enumerate(zip(cropped_faces, restored_faces)):
             # save restored face
-            out_path = Path(tempfile.mkdtemp()) / f"output_{idx}.png"
+            out_path = Path(tempfile.mkdtemp()) / f'output_{idx}.png'
             imwrite(restored_face, str(out_path))
             model_output.append(ModelOutput(image=out_path))
 
         # save restored img
         if restored_img is not None:
-            out_path = Path(tempfile.mkdtemp()) / "output.png"
+            out_path = Path(tempfile.mkdtemp()) / 'output.png'
             imwrite(restored_img, str(out_path))
             model_output.append(ModelOutput(image=out_path))
         return model_output

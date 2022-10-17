@@ -204,7 +204,7 @@ class GeneralizedQuantizer(nn.Module):
 
 
 @ARCH_REGISTRY.register()
-class VQGAN(nn.Module):
+class VQGANv1(nn.Module):
 
     def __init__(self,
                  base_channels,

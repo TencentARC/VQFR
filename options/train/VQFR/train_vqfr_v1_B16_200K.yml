@@ -44,7 +44,7 @@ datasets:
 
 # network structures
 network_sr:
-  type: VQFR
+  type: VQFRv1
   base_channels: 128
   proj_patch_size: 32
   resolution_scale_rates: [ 1,2,2,2,2,2 ]
@@ -84,7 +84,7 @@ network_sr:
       deformable_groups: 4
   quantizer_opt:
     Level_32:
-      type: L2VectorQuantizer
+      type: L2VectorQuantizerKmeans
       in_dim: 512
       num_code: 1024
       code_dim: 256

@@ -97,29 +97,12 @@ class VQGANModel(BaseModel):
 
     def setup_optimizers(self):
         train_opt = self.opt['train']
-        # optimizer g
 
-        normal_params = []
-        embedding_params = []
-        for name, param in self.net_g.named_parameters():
-            if param.requires_grad is True:
-                if 'embedding' in name:
-                    embedding_params.append(param)
-                else:
-                    normal_params.append(param)
-        optim_params_g = [
-            {  # add normal params first
-                'params': normal_params,
-                'lr': train_opt['optim_g']['lr']
-            },
-            {
-                'params': embedding_params,
-                'lr': train_opt['optim_g']['lr'] * self.opt['train'].get('codebook_lr_multiplier', 1.0)
-            }
-        ]
+        # optimizer g
         optim_type = train_opt['optim_g'].pop('type')
-        self.optimizer_g = self.get_optimizer(optim_type, optim_params_g, **train_opt['optim_g'])
+        self.optimizer_g = self.get_optimizer(optim_type, self.net_g.parameters(), **train_opt['optim_g'])
         self.optimizers.append(self.optimizer_g)
+
         # optimizer d
         if 'network_d' in self.opt:
             optim_type = train_opt['optim_d'].pop('type')
@@ -216,22 +199,18 @@ class VQGANModel(BaseModel):
 
     def feed_data(self, data):
         self.gt = data['gt'].to(self.device)
-        if 'semantic_feat' in data:
-            self.semantic_feat = data['semantic_feat'].to(self.device)
-        else:
-            self.semantic_feat = None
 
     def test(self):
         if hasattr(self, 'net_g_ema'):
             self.net_g_ema.eval()
             with torch.no_grad():
-                self.output, _ = self.net_g_ema(self.gt, self.semantic_feat, return_keys=('dec'))
+                self.output, _ = self.net_g_ema(self.gt, return_keys=('dec'))
                 self.output = self.output['dec']
 
         else:
             self.net_g.eval()
             with torch.no_grad():
-                self.output, _ = self.net_g(self.gt, self.semantic_feat, return_keys=('dec'))
+                self.output, _ = self.net_g(self.gt, return_keys=('dec'))
                 self.output = self.output['dec']
 
             self.net_g.train()

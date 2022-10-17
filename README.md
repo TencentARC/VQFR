@@ -1,6 +1,6 @@
 # VQFR (ECCV 2022 Oral)
 
-![visitors](https://visitor-badge.glitch.me/badge?page_id=TencentARC/VQFR)
+[![download](https://img.shields.io/github/downloads/TencentARC/VQFR/total.svg)](https://github.com/TencentARC/VQFR/releases)
 [![Open issue](https://img.shields.io/github/issues/TencentARC/VQFR)](https://github.com/TencentARC/VQFR/issues)
 [![Closed issue](https://img.shields.io/github/issues-closed/TencentARC/VQFR)](https://github.com/TencentARC/VQFR/issues)
 [![LICENSE](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/TencentARC/VQFR/blob/master/LICENSE)
@@ -12,9 +12,10 @@
 
 :triangular_flag_on_post: **Updates**
 
+- :white_check_mark: **2022.10.16** Clean research codes & Update VQFR-v2, please see [CHANGELOG.md](). In this version, we emphasize the restoration **quality** of the texture branch and **balance fidelity with user control**.
 - :white_check_mark: Support enhancing non-face regions (background) with [Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN).
 - :white_check_mark: The Colab Demo of VQFR is created.
-- :white_check_mark: The training/inference codes and pretrained models in paper are released. 
+- :white_check_mark: The training/inference codes and pretrained models in paper are released.
 
 This paper aims at investigating the **potential and limitation of Vector-Quantized (VQ) dictionary** for blind face restoration.
 <br>
@@ -76,25 +77,26 @@ Shenzhen Institutes of Advanced Technology, Chinese Academy of Sciences
 
 ## :zap: Quick Inference
 
-Download pre-trained **VQFR model** [[Google Drive](https://drive.google.com/drive/folders/1lczKYEbARwe27FJlKoFdng7UnffGDjO2?usp=sharing)|[腾讯微云](https://share.weiyun.com/FbrOSsmk)].
+Download pre-trained **VQFRv1/v2 models** [[Google Drive](https://drive.google.com/drive/folders/1lczKYEbARwe27FJlKoFdng7UnffGDjO2?usp=sharing)|[腾讯微云](https://share.weiyun.com/FbrOSsmk)].
 
 **Inference**
 
 ```bash
 # for real-world image
-python demo.py -i inputs/whole_imgs -o results -v 1.0 -s 2
+python demo.py -i inputs/whole_imgs -o results -v 2.0 -s 2 -f 0.1
 
 # for cropped face
-python demo.py -i inputs/cropped_faces/ -o results -v 1.0 -s 1 --aligned
+python demo.py -i inputs/cropped_faces/ -o results -v 2.0 -s 1 -f 0.1 --aligned
 ```
 
 ```console
-Usage: python demo.py -i inputs/whole_imgs -o results -v 1.0 -s 2 [options]...
+Usage: python demo.py -i inputs/whole_imgs -o results -v 2.0 -s 2 -f 0.1 [options]...
 
   -h                   show this help
   -i input             Input image or folder. Default: inputs/whole_imgs
   -o output            Output folder. Default: results
   -v version           VQFR model version. Option: 1.0. Default: 1.0
+  -f fidelity_ratio    VQFRv2 model supports user control fidelity ratio, range from [0,1]. 0 for the best quality and 1 for the best fidelity. Default: 0
   -s upscale           The final upsampling scale of the image. Default: 2
   -bg_upsampler        background upsampler. Default: realesrgan
   -bg_tile             Tile size for background sampler, 0 for no tile during testing. Default: 400

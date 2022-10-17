@@ -1,4 +1,4 @@
-name: test_vqgan_v1
+name: test_vqgan_v2
 model_type: VQGANModel
 scale: 1
 num_gpu: 1  # set num_gpu: 0 for cpu mode
@@ -18,28 +18,23 @@ datasets:
 
 # network structures
 network_g:
-  type: VQGANv1
-  base_channels: 128
-  proj_patch_size: 32
-  resolution_scale_rates: [ 1,2,2,2,2,2 ]
-  channel_multipliers: [ 1,1,2,2,2,4 ]
-  encoder_num_blocks: 2
-  decoder_num_blocks: 3
-  quant_level: [ 'Level_32' ]
+  type: VQGANv2
+  base_channels: 64
+  channel_multipliers: [ 1,2,2,4,4,8 ]
+  num_enc_blocks: 2
+  use_enc_attention: true
+  num_dec_blocks: 2
+  use_dec_attention: true
+  code_dim: 256
   quantizer_opt:
-    Level_32:
-      type: L2VectorQuantizerKmeans
-      in_dim: 512
-      num_code: 1024
-      code_dim: 256
-      reservoir_size: 16384
-      reestimate_iters: 2000
-      reestimate_maxiters: 30000
-      warmup_iters: 10000
+    type: L2VectorQuantizer
+    num_code: 1024
+    code_dim: 256
+    spatial_size: [ 16,16 ]
 
 # path
 path:
-  pretrain_network_g: experiments/pretrained_models/VQ_Codebook_FFHQ512-39165968.pth
+  pretrain_network_g: experiments/pretrained_models/VQ_Codebook_FFHQ512_v2.pth
   strict_load_g: true
 
 # validation settings
