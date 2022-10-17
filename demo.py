@@ -26,7 +26,7 @@ def main():
     parser.add_argument(
         '-f',
         '--fidelity_ratio',
-        type=str,
+        type=float,
         default=0.0,
         help='fidelity range [0,1] in VQFR-v2, 0 for the best quality, 1 for the best fidelity')
     parser.add_argument(

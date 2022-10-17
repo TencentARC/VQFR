@@ -109,7 +109,8 @@ class VQFR_Demo():
                 quantizer_opt={
                     'type': 'L2VectorQuantizer',
                     'num_code': 1024,
-                    'code_dim': 256
+                    'code_dim': 256,
+                    'spatial_size': [16, 16]
                 })
 
         # initialize face helper
