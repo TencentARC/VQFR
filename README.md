@@ -78,7 +78,7 @@ Shenzhen Institutes of Advanced Technology, Chinese Academy of Sciences
 
 ## :zap: Quick Inference
 
-Download pre-trained **VQFRv1/v2 models** [[Google Drive](https://drive.google.com/drive/folders/1lczKYEbARwe27FJlKoFdng7UnffGDjO2?usp=sharing)|[腾讯微云](https://share.weiyun.com/FbrOSsmk)].
+Download pre-trained **VQFRv1/v2 models** [Google Drive](https://drive.google.com/drive/folders/1lczKYEbARwe27FJlKoFdng7UnffGDjO2?usp=sharing).
 
 **Inference**
 
@@ -112,7 +112,7 @@ Usage: python demo.py -i inputs/whole_imgs -o results -v 2.0 -s 2 -f 0.1 [option
 We provide the training codes for VQFR (used in our paper).
 
 - Dataset preparation: [FFHQ](https://github.com/NVlabs/ffhq-dataset)
-- Download lpips weights[[Google Drive](https://drive.google.com/drive/folders/1weXfn5mdIwp2dEfDbNNUkauQgo8fx-2D?usp=sharing)|[腾讯微云](https://share.weiyun.com/pF7r3m4J)] into **experiments/pretrained_models/**
+- Download lpips weights[Google Drive](https://drive.google.com/drive/folders/1weXfn5mdIwp2dEfDbNNUkauQgo8fx-2D?usp=sharing) into **experiments/pretrained_models/**
 
 **Codebook Training**
 
@@ -121,7 +121,7 @@ We provide the training codes for VQFR (used in our paper).
  python -m torch.distributed.launch --nproc_per_node=8 --master_port=2022 vqfr/train.py -opt options/train/VQGAN/train_vqgan_v1_B16_800K.yml --launcher pytorch
 ```
 
-- Or download our pretrained **VQ codebook** [[Google Drive](https://drive.google.com/drive/folders/1lczKYEbARwe27FJlKoFdng7UnffGDjO2?usp=sharing)|[腾讯微云](https://share.weiyun.com/FbrOSsmk)] and put them in the `experiments/pretrained_models` folder.
+- Or download our pretrained **VQ codebook** [Google Drive](https://drive.google.com/drive/folders/1lczKYEbARwe27FJlKoFdng7UnffGDjO2?usp=sharing) and put them in the `experiments/pretrained_models` folder.
 
 **Restoration Training**
 
@@ -151,8 +151,8 @@ For reproduce our evaluation results, you need to perform the following steps:
     <td rowspan="5">Testing Datasets</td>
     <td>CelebA-Test(LQ/HQ)</td>
     <td><sub>3000 (LQ, HQ) synthetic images for testing</sub></td>
-    <td rowspan="4"><a href="https://drive.google.com/drive/folders/1CPdaCijkhl8ojg9ZDCPXntQrnw-8tUeD?usp=sharing">Google Drive</a> / <a href="https://share.weiyun.com/b6M66DTJ">腾讯微云</a></td>
-    <td rowspan="4"><a href="https://drive.google.com/drive/folders/1w-qo5BsKBzSmE0hwS9Hl5G9fn4VKVweU?usp=sharing">Google Drive</a> / <a href="https://share.weiyun.com/fzT4FYPJ">腾讯微云</a></td>
+    <td rowspan="4"><a href="https://drive.google.com/drive/folders/1CPdaCijkhl8ojg9ZDCPXntQrnw-8tUeD?usp=sharing">Google Drive</a> </td>
+    <td rowspan="4"><a href="https://drive.google.com/drive/folders/1w-qo5BsKBzSmE0hwS9Hl5G9fn4VKVweU?usp=sharing">Google Drive</a> </td>
 </tr>
 <tr>
     <td>LFW-Test(LQ)</td>
@@ -191,7 +191,7 @@ For reproduce our evaluation results, you need to perform the following steps:
 <tr>
     <td>FID</td>
     <td>inception_FFHQ_512.pth</td>
-    <td rowspan="3"><a href="https://drive.google.com/drive/folders/1k3RCSliF6PsujCMIdCD1hNM63EozlDIZ?usp=sharing">Google Drive</a> / <a href="https://share.weiyun.com/0WkK3aGK">腾讯微云</a></td>
+    <td rowspan="3"><a href="https://drive.google.com/drive/folders/1k3RCSliF6PsujCMIdCD1hNM63EozlDIZ?usp=sharing">Google Drive</a> </td>
 </tr>
 <tr>
     <td>Deg</td>
