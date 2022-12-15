@@ -12,7 +12,7 @@
 
 :triangular_flag_on_post: **Updates**
 
-- :white_check_mark: **2022.10.16** Clean research codes & Update VQFR-v2, please see [CHANGELOG.md](). In this version, we emphasize the restoration **quality** of the texture branch and **balance fidelity with user control**. <a href="https://colab.research.google.com/drive/1Nd_PUrHaYmeEAOF5f_Zi0VuOxlJ62gLr?usp=sharing"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="google colab logo"></a>
+- :white_check_mark: **2022.10.16** Clean research codes & Update VQFR-v2. In this version, we emphasize the restoration **quality** of the texture branch and **balance fidelity with user control**. <a href="https://colab.research.google.com/drive/1Nd_PUrHaYmeEAOF5f_Zi0VuOxlJ62gLr?usp=sharing"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="google colab logo"></a>
 
 - :white_check_mark: Support enhancing non-face regions (background) with [Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN).
 - :white_check_mark: The Colab Demo of VQFR is created.
@@ -78,7 +78,7 @@ Shenzhen Institutes of Advanced Technology, Chinese Academy of Sciences
 
 ## :zap: Quick Inference
 
-Download pre-trained **VQFRv1/v2 models** [Google Drive](https://drive.google.com/drive/folders/1lczKYEbARwe27FJlKoFdng7UnffGDjO2?usp=sharing).
+Download pre-trained **VQFRv1/v2 models** [[Google Drive](https://drive.google.com/drive/folders/1lczKYEbARwe27FJlKoFdng7UnffGDjO2?usp=sharing)].
 
 **Inference**
 
@@ -112,7 +112,7 @@ Usage: python demo.py -i inputs/whole_imgs -o results -v 2.0 -s 2 -f 0.1 [option
 We provide the training codes for VQFR (used in our paper).
 
 - Dataset preparation: [FFHQ](https://github.com/NVlabs/ffhq-dataset)
-- Download lpips weights[Google Drive](https://drive.google.com/drive/folders/1weXfn5mdIwp2dEfDbNNUkauQgo8fx-2D?usp=sharing) into **experiments/pretrained_models/**
+- Download lpips weights [[Google Drive](https://drive.google.com/drive/folders/1weXfn5mdIwp2dEfDbNNUkauQgo8fx-2D?usp=sharing)] into **experiments/pretrained_models/**
 
 **Codebook Training**
 
